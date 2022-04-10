@@ -1,7 +1,7 @@
 package cic.cs.unb.ca.jnetpcap.worker;
 
 import cic.cs.unb.ca.jnetpcap.*;
-import org.jnetpcap.PcapClosedException;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -41,7 +41,7 @@ public class PcapReader {
         flowGen.addFlowListener(new FlowListener(fileName,outPath));
         boolean readIP6 = false;
         boolean readIP4 = true;
-        PacketReader packetReader = new PacketReader(inputFile, readIP4, readIP6);
+        PacketReader packetReader = new PacketReader(inputFile, Mode.OFFLINE);
 
         System.out.println(String.format("Working on... %s",fileName));
 
@@ -59,7 +59,7 @@ public class PcapReader {
                 }else{
                     nDiscarded++;
                 }
-            }catch(PcapClosedException e){
+            }catch(Exception e){
                 break;
             }
         }

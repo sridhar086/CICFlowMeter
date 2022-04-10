@@ -1,8 +1,8 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.jnetpcap.packet.format.FormatUtils;
 
 public class BasicPacketInfo {
 	
@@ -90,11 +90,11 @@ public class BasicPacketInfo {
           
     
     public String getSourceIP(){
-    	return FormatUtils.ip(this.src);
+    	return new String(src, StandardCharsets.UTF_8);
     }
 
     public String getDestinationIP(){
-    	return FormatUtils.ip(this.dst);
+		return new String(dst, StandardCharsets.UTF_8);
     }
     
     

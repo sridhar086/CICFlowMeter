@@ -1,7 +1,6 @@
 package cic.cs.unb.ca.jnetpcap.worker;
 
 import cic.cs.unb.ca.jnetpcap.*;
-import org.jnetpcap.PcapClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +150,7 @@ public class ReadPcapFileWorker extends SwingWorker<List<String>,String> {
         flowGen.addFlowListener(new FlowListener(fileName));
         boolean readIP6 = false;
         boolean readIP4 = true;
-        PacketReader packetReader = new PacketReader(inputFile, readIP4, readIP6);
+        PacketReader packetReader = new PacketReader(inputFile, Mode.OFFLINE);
         publish(String.format("Working on... %s",inputFile));
         logger.debug("Working on... {}",inputFile);
 
@@ -169,7 +168,7 @@ public class ReadPcapFileWorker extends SwingWorker<List<String>,String> {
                 }else{
                     nDiscarded++;
                 }
-            }catch(PcapClosedException e){
+            }catch(Exception e){
                 break;
             }
         }

@@ -1,11 +1,11 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.jnetpcap.packet.format.FormatUtils;
 
 public class BasicFlow {
 
@@ -589,11 +589,11 @@ public class BasicFlow {
     }    
 
     public String dumpFlowBasedFeatures(){
-    	String dump = "";
+		String dump = "";
 		dump+=this.flowId+",";
-    	dump+=FormatUtils.ip(src)+",";
+    	dump+=new String(src, StandardCharsets.UTF_8)+",";
     	dump+=getSrcPort()+",";
-    	dump+=FormatUtils.ip(dst)+",";    			
+    	dump+=new String(dst, StandardCharsets.UTF_8)+",";
     	dump+=getDstPort()+",";
     	dump+=getProtocol()+",";
 		//dump+=this.flowStartTime+",";
@@ -847,11 +847,11 @@ public class BasicFlow {
 	}
 		
 	public String getSrcIP() {
-		return FormatUtils.ip(src);
+		return new String(src, StandardCharsets.UTF_8);
 	}
 	
 	public String getDstIP() {
-		return FormatUtils.ip(dst);
+		return new String(dst, StandardCharsets.UTF_8);
 	}
 	
 	public String getTimeStamp() {
@@ -1092,9 +1092,9 @@ public class BasicFlow {
     	StringBuilder dump = new StringBuilder();
     	
     	dump.append(flowId).append(separator);                						//1
-    	dump.append(FormatUtils.ip(src)).append(separator);   						//2
+    	dump.append(new String(src, StandardCharsets.UTF_8)).append(separator);   						//2
     	dump.append(getSrcPort()).append(separator);          						//3
-    	dump.append(FormatUtils.ip(dst)).append(separator);  						//4
+    	dump.append(new String(dst, StandardCharsets.UTF_8)).append(separator);  						//4
     	dump.append(getDstPort()).append(separator);          						//5
     	dump.append(getProtocol()).append(separator);         						//6 
     	

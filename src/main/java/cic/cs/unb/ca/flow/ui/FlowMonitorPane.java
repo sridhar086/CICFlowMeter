@@ -11,7 +11,7 @@ import cic.cs.unb.ca.jnetpcap.worker.LoadPcapInterfaceWorker;
 import cic.cs.unb.ca.jnetpcap.worker.TrafficFlowWorker;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jnetpcap.PcapIf;
+import org.pcap4j.core.PcapNetworkInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cic.cs.unb.ca.jnetpcap.worker.InsertCsvRow;
@@ -272,7 +272,7 @@ public class FlowMonitorPane extends JPanel {
                         break;
                     case DONE:
                         try {
-                            java.util.List<PcapIf> ifs = task1.get();
+                            java.util.List<PcapNetworkInterface> ifs = task1.get();
                             List<PcapIfWrapper> pcapiflist = PcapIfWrapper.fromPcapIf(ifs);
 
                             listModel.removeAllElements();
