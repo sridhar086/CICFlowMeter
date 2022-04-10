@@ -1,5 +1,9 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import sun.net.util.IPAddressUtil;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -69,12 +73,12 @@ public class BasicPacketInfo {
         return this.flowId;
 	}
 
- 	public String fwdFlowId() {  
+ 	public String fwdFlowId() {
 		this.flowId = this.getSourceIP() + "-" + this.getDestinationIP() + "-" + this.srcPort  + "-" + this.dstPort  + "-" + this.protocol;
 		return this.flowId;
 	}
 	
-	public String bwdFlowId() {  
+	public String bwdFlowId() {
 		this.flowId = this.getDestinationIP() + "-" + this.getSourceIP() + "-" + this.dstPort  + "-" + this.srcPort  + "-" + this.protocol;
 		return this.flowId;
 	}
@@ -90,11 +94,21 @@ public class BasicPacketInfo {
           
     
     public String getSourceIP(){
-    	return new String(src, StandardCharsets.UTF_8);
-    }
+		try {
+			return InetAddress.getByAddress(src).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN SRC IP";
+		}
+	}
 
     public String getDestinationIP(){
-		return new String(dst, StandardCharsets.UTF_8);
+		try {
+			return InetAddress.getByAddress(dst).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN DST IP";
+		}
     }
     
     

@@ -52,23 +52,13 @@ public class PacketReader {
 //		}
 	}
 	
-	public BasicPacketInfo nextPacket() {
+	public BasicPacketInfo nextPacket() throws EOFException, NotOpenException, PcapNativeException, TimeoutException {
 		 BasicPacketInfo packetInfo = null;
-		 try{
 			 Packet packet = pcapHandle.getNextPacketEx();
 			 packetInfo = getIpInfo(packet);
 //			 if (packetInfo == null){
 //				 packetInfo = getVPNInfo(packet);
 //			 }
-		 }catch(EOFException e){
-			 logger.debug("Read All packets on {}",file);
-		 }catch(PcapNativeException ex){
-			 logger.debug("native library exception");
-		 } catch(NotOpenException e) {
-			 logger.debug("Pcap handle not open");
-		 } catch(TimeoutException e) {
-			 logger.debug("timeout exception");
-		 }
 		 return packetInfo;
 	}
 
@@ -80,11 +70,15 @@ public class PacketReader {
 
 	private BasicPacketInfo getIpInfo(Packet packet) {
 		BasicPacketInfo packetInfo = new BasicPacketInfo(this.generator);
+		//todo look at this link
+		// basically, from the packet needs to be sort of reconstructed.
+		// https://stackoverflow.com/questions/64507511/cannot-read-tcppacket-in-pcap4j
+		// https://github.com/kaitoy/pcap4j/issues/67
+		//EthernetPacket.newPacket(packet.getRawData(), 0, packet.length()).getRawData();
 		try {
 			if (packet.contains(TcpPacket.class)) {
 				System.out.println("Tcp packet");
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
-				IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
 				packetInfo.setTCPWindow(tcpPacket.getHeader().getWindowAsInt());
 				packetInfo.setSrcPort(tcpPacket.getHeader().getSrcPort().valueAsInt());
 				packetInfo.setDstPort(tcpPacket.getHeader().getDstPort().valueAsInt());
@@ -104,20 +98,28 @@ public class PacketReader {
 			} else if (packet.contains(UdpPacket.class)) {
 				System.out.println("Udp packet");
 				UdpPacket udpPacket = packet.get(UdpPacket.class);
-				IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
 				packetInfo.setSrcPort(udpPacket.getHeader().getSrcPort().valueAsInt());
 				packetInfo.setDstPort(udpPacket.getHeader().getDstPort().valueAsInt());
 				packetInfo.setPayloadBytes(udpPacket.getPayload().length());
 				packetInfo.setHeaderBytes(udpPacket.getHeader().getLength());
 				packetInfo.setProtocol(17);
-			} else if (packet.contains(IpV6Packet.class)) {
+			} else {
+				return null;
+			}
+
+			if (packet.contains(IpV6Packet.class)) {
 				System.out.println("Ipv6 packet");
+				IpV6Packet ipV6Packet = packet.get(IpV6Packet.class);
+				packetInfo.setSrc(ipV6Packet.getHeader().getSrcAddr().getAddress());
+				packetInfo.setDst(ipV6Packet.getHeader().getDstAddr().getAddress());
 				//do something needed
 			} else if (packet.contains(IpV4Packet.class)) {
 				System.out.println("Ipv4 packet");
+				IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
+				packetInfo.setSrc(ipV4Packet.getHeader().getSrcAddr().getAddress());
+				packetInfo.setDst(ipV4Packet.getHeader().getDstAddr().getAddress());
+
 				//do something needed
-			} else {
-				return null;
 			}
 		} catch (Exception e) {
 			String errormsg = "";

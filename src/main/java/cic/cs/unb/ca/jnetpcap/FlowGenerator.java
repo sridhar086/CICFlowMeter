@@ -1,17 +1,16 @@
 package cic.cs.unb.ca.jnetpcap;
 
 import cic.cs.unb.ca.jnetpcap.worker.FlowGenListener;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import static cic.cs.unb.ca.jnetpcap.Utils.LINE_SEP;
 
@@ -69,35 +68,37 @@ public class FlowGenerator {
 		mListener = listener;
 	}
 
-    public void addPacket(BasicPacketInfo packet){
-        if(packet == null) {
+    public void addPacket(BasicPacketInfo packet) {
+
+		if(packet == null) {
             return;
         }
         
     	BasicFlow   flow;
     	long        currentTimestamp = packet.getTimeStamp();
-		    String id;
+		String id;
 
-    	if(this.currentFlows.containsKey(packet.fwdFlowId())||this.currentFlows.containsKey(packet.bwdFlowId())){
-	
-	if(this.currentFlows.containsKey(packet.fwdFlowId())) 
-		{id = packet.fwdFlowId();}
+		if(this.currentFlows.containsKey(packet.fwdFlowId()) || this.currentFlows.containsKey(packet.bwdFlowId())) {
+			if(this.currentFlows.containsKey(packet.fwdFlowId())) {
+				id = packet.fwdFlowId();
+			}
     		else {
-		id = packet.bwdFlowId();}
+				id = packet.bwdFlowId();
+			}
 
     		flow = currentFlows.get(id);
     		// Flow finished due flowtimeout: 
     		// 1.- we move the flow to finished flow list
     		// 2.- we eliminate the flow from the current flow list
     		// 3.- we create a new flow with the packet-in-process
-    		if((currentTimestamp -flow.getFlowStartTime())>flowTimeOut){
-    			if(flow.packetCount()>1){
+    		if((currentTimestamp -flow.getFlowStartTime())>flowTimeOut) {
+    			if(flow.packetCount()>1) {
 					if (mListener != null) {
 						mListener.onFlowGenerated(flow);
-					    }
-					else{
-                                                finishedFlows.put(getFlowCount(), flow);
-                                            }
+					}
+					else {
+						finishedFlows.put(getFlowCount(), flow);
+					}
                     //flow.endActiveIdleTime(currentTimestamp,this.flowActivityTimeOut, this.flowTimeOut, false);
     			}
     			currentFlows.remove(id);    			
@@ -221,9 +222,9 @@ public class FlowGenerator {
     				// TODO: we just discard the packet?
     			}
     		}
-    	}else{
+    	} else {
 			currentFlows.put(packet.fwdFlowId(), new BasicFlow(bidirectional,packet, this.flowActivityTimeOut));
-    	}
+		}
     }
 
     /*public void dumpFlowBasedFeatures(String path, String filename,String header){

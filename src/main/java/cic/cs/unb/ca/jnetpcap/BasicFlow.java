@@ -1,5 +1,7 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -588,12 +590,23 @@ public class BasicFlow {
     	}
     }    
 
-    public String dumpFlowBasedFeatures(){
+    public String dumpFlowBasedFeatures() {
 		String dump = "";
 		dump+=this.flowId+",";
-    	dump+=new String(src, StandardCharsets.UTF_8)+",";
-    	dump+=getSrcPort()+",";
-    	dump+=new String(dst, StandardCharsets.UTF_8)+",";
+		try {
+			dump+= InetAddress.getByAddress(src).getHostAddress()+",";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			dump+= "UNKNOWN SRC IP"+",";
+		}
+		dump+=getSrcPort()+",";
+
+		try {
+			dump+= InetAddress.getByAddress(dst).getHostAddress()+",";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			dump+= "UNKNOWN SRC IP"+",";
+		}
     	dump+=getDstPort()+",";
     	dump+=getProtocol()+",";
 		//dump+=this.flowStartTime+",";
@@ -847,11 +860,21 @@ public class BasicFlow {
 	}
 		
 	public String getSrcIP() {
-		return new String(src, StandardCharsets.UTF_8);
+		try {
+			return InetAddress.getByAddress(src).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN SRC IP";
+		}
 	}
 	
 	public String getDstIP() {
-		return new String(dst, StandardCharsets.UTF_8);
+		try {
+			return InetAddress.getByAddress(dst).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN DST IP";
+		}
 	}
 	
 	public String getTimeStamp() {
@@ -1092,9 +1115,17 @@ public class BasicFlow {
     	StringBuilder dump = new StringBuilder();
     	
     	dump.append(flowId).append(separator);                						//1
-    	dump.append(new String(src, StandardCharsets.UTF_8)).append(separator);   						//2
-    	dump.append(getSrcPort()).append(separator);          						//3
-    	dump.append(new String(dst, StandardCharsets.UTF_8)).append(separator);  						//4
+		try {
+			dump.append(InetAddress.getByAddress(src).getHostAddress()).append(separator);   						//2
+		} catch (UnknownHostException e) {
+			dump.append("UNKNOWN SRC IP").append(separator);   						//2
+		}
+		dump.append(getSrcPort()).append(separator);          						//3
+		try {
+			dump.append(InetAddress.getByAddress(dst).getHostAddress()).append(separator);  						//4
+		} catch (UnknownHostException e) {
+			dump.append("UNKNOWN DST IP").append(separator);  						//4
+		}
     	dump.append(getDstPort()).append(separator);          						//5
     	dump.append(getProtocol()).append(separator);         						//6 
     	
