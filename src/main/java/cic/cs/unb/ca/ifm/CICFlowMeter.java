@@ -91,7 +91,7 @@ public class CICFlowMeter {
 			logger.info("\t Total packets: {}",nTotal);
 			logger.info("\t Valid packets: {}",nValid);
 			logger.info("\t Ignored packets:{} {} ", nDiscarded,(nTotal-nValid) );
-			logger.info("PCAP duration {} seconds", (int) ((packetReader.getLastPacket()-packetReader.getFirstPacket())/1000));
+			logger.info("PCAP duration {} seconds", (int) ((packetReader.getLastPacketTimestamp()-packetReader.getFirstPacketTimestamp())/1000));
 			logger.info("----------------------------------------------------------------------------");
 			totalFlows+=flowGen.dumpLabeledFlowBasedFeatures(outpath, file+"_ISCX.csv", FlowFeature.getHeader());
 			//flowGen.dumpIPAddresses(outpath, file+"_IP-Addresses.csv");
