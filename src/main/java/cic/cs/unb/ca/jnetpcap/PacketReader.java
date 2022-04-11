@@ -9,38 +9,31 @@ import org.slf4j.LoggerFactory;
 
 
 import java.io.EOFException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 public class PacketReader {
 
 	private static final Logger logger = LoggerFactory.getLogger(PacketReader.class);
-	private IdGenerator  generator = new IdGenerator();
+	private final IdGenerator  generator = new IdGenerator();
 	private PcapHandle pcapHandle;
 	
 	private long firstPacket;
 	private long lastPacket;
-
-	
-	private boolean readIP6;
-	private boolean readIP4;
-	private String file;
-	private boolean mode;
+	private final Mode mode;
 	
 	public PacketReader(String filename, Mode mode) {
-		super();	
-		this.readIP4 = true;
-		this.readIP6 = false;		
+		super();
 		this.config(filename);
+		this.mode = mode;
 	}
 
 	public PacketReader(Mode mode){
-
+		this.mode = mode;
 	}
 	
 	private void config(String filename) {
-        file = filename;
-		StringBuilder errbuf = new StringBuilder(); // For any error msgs
 		try {
 			pcapHandle = Pcaps.openOffline(filename);
 		} catch(Exception e) {
@@ -49,23 +42,15 @@ public class PacketReader {
 		}
 		this.firstPacket = 0L;
 		this.lastPacket = 0L;
-//		}
 	}
 	
 	public BasicPacketInfo nextPacket() throws EOFException, NotOpenException, PcapNativeException, TimeoutException {
-		 BasicPacketInfo packetInfo = null;
 			 Packet packet = pcapHandle.getNextPacketEx();
-			 packetInfo = getIpInfo(packet);
-//			 if (packetInfo == null){
-//				 packetInfo = getVPNInfo(packet);
-//			 }
-		 return packetInfo;
+			 return getIpInfo(packet);
 	}
 
 	public BasicPacketInfo getPacketInfo(Packet packet) {
-		BasicPacketInfo packetInfo = null;
-		packetInfo = getIpInfo(packet);
-		return packetInfo;
+		return getIpInfo(packet);
 	}
 
 	private BasicPacketInfo getIpInfo(Packet packet) {
@@ -74,10 +59,13 @@ public class PacketReader {
 		// basically, from the packet needs to be sort of reconstructed.
 		// https://stackoverflow.com/questions/64507511/cannot-read-tcppacket-in-pcap4j
 		// https://github.com/kaitoy/pcap4j/issues/67
-		//EthernetPacket.newPacket(packet.getRawData(), 0, packet.length()).getRawData();
+		Timestamp timestamp = pcapHandle.getTimestamp();
+		packetInfo.setTimeStamp(timestamp.getTime());
+		if(this.firstPacket == 0L)
+			this.firstPacket = timestamp.getTime();
+		this.lastPacket = timestamp.getTime();
 		try {
 			if (packet.contains(TcpPacket.class)) {
-				System.out.println("Tcp packet");
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
 				packetInfo.setTCPWindow(tcpPacket.getHeader().getWindowAsInt());
 				packetInfo.setSrcPort(tcpPacket.getHeader().getSrcPort().valueAsInt());
@@ -91,12 +79,8 @@ public class PacketReader {
 				packetInfo.setFlagURG(tcpPacket.getHeader().getUrg());
 				packetInfo.setPayloadBytes(tcpPacket.getPayload().length());
 				packetInfo.setHeaderBytes(tcpPacket.getHeader().length());
-//				if(this.firstPacket == 0L)
-//					this.firstPacket = get timestamp
-//				this.lastPacket = packet.getCaptureHeader().timestampInMillis();
 
 			} else if (packet.contains(UdpPacket.class)) {
-				System.out.println("Udp packet");
 				UdpPacket udpPacket = packet.get(UdpPacket.class);
 				packetInfo.setSrcPort(udpPacket.getHeader().getSrcPort().valueAsInt());
 				packetInfo.setDstPort(udpPacket.getHeader().getDstPort().valueAsInt());
@@ -108,18 +92,13 @@ public class PacketReader {
 			}
 
 			if (packet.contains(IpV6Packet.class)) {
-				System.out.println("Ipv6 packet");
 				IpV6Packet ipV6Packet = packet.get(IpV6Packet.class);
 				packetInfo.setSrc(ipV6Packet.getHeader().getSrcAddr().getAddress());
 				packetInfo.setDst(ipV6Packet.getHeader().getDstAddr().getAddress());
-				//do something needed
 			} else if (packet.contains(IpV4Packet.class)) {
-				System.out.println("Ipv4 packet");
 				IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
 				packetInfo.setSrc(ipV4Packet.getHeader().getSrcAddr().getAddress());
 				packetInfo.setDst(ipV4Packet.getHeader().getDstAddr().getAddress());
-
-				//do something needed
 			}
 		} catch (Exception e) {
 			String errormsg = "";
@@ -131,6 +110,22 @@ public class PacketReader {
 		}
 
 		return packetInfo;
+	}
+
+	public long getFirstPacket() {
+		return firstPacket;
+	}
+
+	public void setFirstPacket(long firstPacket) {
+		this.firstPacket = firstPacket;
+	}
+
+	public long getLastPacket() {
+		return lastPacket;
+	}
+
+	public void setLastPacket(long lastPacket) {
+		this.lastPacket = lastPacket;
 	}
 
 
