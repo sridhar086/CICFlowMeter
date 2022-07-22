@@ -1,11 +1,13 @@
 package cic.cs.unb.ca.jnetpcap;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.jnetpcap.packet.format.FormatUtils;
 
 public class BasicFlow {
 
@@ -588,16 +590,27 @@ public class BasicFlow {
     	}
     }    
 
-    public String dumpFlowBasedFeatures(){
-    	String dump = "";
+    public String dumpFlowBasedFeatures() {
+		String dump = "";
 		dump+=this.flowId+",";
-    	dump+=FormatUtils.ip(src)+",";
-    	dump+=getSrcPort()+",";
-    	dump+=FormatUtils.ip(dst)+",";    			
+		try {
+			dump+= InetAddress.getByAddress(src).getHostAddress()+",";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			dump+= "UNKNOWN SRC IP"+",";
+		}
+		dump+=getSrcPort()+",";
+
+		try {
+			dump+= InetAddress.getByAddress(dst).getHostAddress()+",";
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			dump+= "UNKNOWN SRC IP"+",";
+		}
     	dump+=getDstPort()+",";
     	dump+=getProtocol()+",";
 		//dump+=this.flowStartTime+",";
-    	dump+=DateFormatter.parseDateFromLong(this.flowStartTime/1000L, "dd/MM/yyyy hh:mm:ss")+",";
+    	dump+=DateFormatter.parseDateFromLong(this.flowStartTime, "dd/MM/yyyy hh:mm:ss")+",";
     	long flowDuration = this.flowLastSeen - this.flowStartTime; 
     	dump+=flowDuration+",";
 		dump+=this.fwdPktStats.getN()+",";
@@ -847,15 +860,25 @@ public class BasicFlow {
 	}
 		
 	public String getSrcIP() {
-		return FormatUtils.ip(src);
+		try {
+			return InetAddress.getByAddress(src).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN SRC IP";
+		}
 	}
 	
 	public String getDstIP() {
-		return FormatUtils.ip(dst);
+		try {
+			return InetAddress.getByAddress(dst).getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			return "UNKNOWN DST IP";
+		}
 	}
 	
 	public String getTimeStamp() {
-		return DateFormatter.parseDateFromLong(flowStartTime/1000L, "dd/MM/yyyy hh:mm:ss");
+		return DateFormatter.parseDateFromLong(flowStartTime, "dd/MM/yyyy hh:mm:ss");
 	}
 	
 	public long getFlowDuration() {
@@ -1092,13 +1115,21 @@ public class BasicFlow {
     	StringBuilder dump = new StringBuilder();
     	
     	dump.append(flowId).append(separator);                						//1
-    	dump.append(FormatUtils.ip(src)).append(separator);   						//2
-    	dump.append(getSrcPort()).append(separator);          						//3
-    	dump.append(FormatUtils.ip(dst)).append(separator);  						//4
+		try {
+			dump.append(InetAddress.getByAddress(src).getHostAddress()).append(separator);   						//2
+		} catch (UnknownHostException e) {
+			dump.append("UNKNOWN SRC IP").append(separator);   						//2
+		}
+		dump.append(getSrcPort()).append(separator);          						//3
+		try {
+			dump.append(InetAddress.getByAddress(dst).getHostAddress()).append(separator);  						//4
+		} catch (UnknownHostException e) {
+			dump.append("UNKNOWN DST IP").append(separator);  						//4
+		}
     	dump.append(getDstPort()).append(separator);          						//5
     	dump.append(getProtocol()).append(separator);         						//6 
     	
-    	String starttime = DateFormatter.convertMilliseconds2String(flowStartTime/1000L, "dd/MM/yyyy hh:mm:ss a");
+    	String starttime = DateFormatter.parseDateFromLong(flowStartTime, "dd/MM/yyyy hh:mm:ss a");
     	dump.append(starttime).append(separator);									//7
     	
     	long flowDuration = flowLastSeen - flowStartTime;

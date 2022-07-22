@@ -11,13 +11,14 @@ import cic.cs.unb.ca.jnetpcap.worker.LoadPcapInterfaceWorker;
 import cic.cs.unb.ca.jnetpcap.worker.TrafficFlowWorker;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jnetpcap.PcapIf;
+import org.pcap4j.core.PcapNetworkInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cic.cs.unb.ca.jnetpcap.worker.InsertCsvRow;
 import swing.common.InsertTableRow;
 import swing.common.JTable2CSVWorker;
 import swing.common.TextFileFilter;
+import static javax.swing.JOptionPane.showMessageDialog;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -272,7 +273,7 @@ public class FlowMonitorPane extends JPanel {
                         break;
                     case DONE:
                         try {
-                            java.util.List<PcapIf> ifs = task1.get();
+                            java.util.List<PcapNetworkInterface> ifs = task1.get();
                             List<PcapIfWrapper> pcapiflist = PcapIfWrapper.fromPcapIf(ifs);
 
                             listModel.removeAllElements();
@@ -298,20 +299,16 @@ public class FlowMonitorPane extends JPanel {
     private void startTrafficFlow() {
 
         String ifName = list.getSelectedValue().name();
-
-        if (mWorker != null && !mWorker.isCancelled()) {
-            return;
-        }
-
         mWorker = new TrafficFlowWorker(ifName);
+        //todo
         mWorker.addPropertyChangeListener(event -> {
             TrafficFlowWorker task = (TrafficFlowWorker) event.getSource();
             if("progress".equals(event.getPropertyName())){
                 lblStatus.setText((String) event.getNewValue());
                 lblStatus.validate();
-            }else if (TrafficFlowWorker.PROPERTY_FLOW.equalsIgnoreCase(event.getPropertyName())) {
+            } else if (TrafficFlowWorker.PROPERTY_FLOW.equalsIgnoreCase(event.getPropertyName())) {
                 insertFlow((BasicFlow) event.getNewValue());
-            }else if ("state".equals(event.getPropertyName())) {
+            } else if ("state".equals(event.getPropertyName())) {
                 switch (task.getState()) {
                     case STARTED:
                         break;
@@ -319,14 +316,13 @@ public class FlowMonitorPane extends JPanel {
                         try {
                             lblStatus.setText(task.get());
                             lblStatus.validate();
+                            showMessageDialog(this, task.get());
                         } catch(CancellationException e){
-
                             lblStatus.setText("stop listening");
                             lblStatus.setForeground(SystemColor.GRAY);
                             lblStatus.validate();
                             logger.info("Pcap stop listening");
-
-                        }catch (InterruptedException | ExecutionException e) {
+                        } catch (InterruptedException | ExecutionException e) {
                             logger.debug(e.getMessage());
                         }
                         break;

@@ -4,7 +4,6 @@ import cic.cs.unb.ca.flow.FlowMgr;
 import cic.cs.unb.ca.jnetpcap.*;
 import cic.cs.unb.ca.jnetpcap.worker.FlowGenListener;
 import org.apache.commons.io.FilenameUtils;
-import org.jnetpcap.PcapClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cic.cs.unb.ca.jnetpcap.worker.InsertCsvRow;
@@ -121,11 +120,12 @@ public class Cmd {
            }
         }
 
+
         FlowGenerator flowGen = new FlowGenerator(true, flowTimeout, activityTimeout);
         flowGen.addFlowListener(new FlowListener(fileName,outPath));
         boolean readIP6 = false;
         boolean readIP4 = true;
-        PacketReader packetReader = new PacketReader(inputFile, readIP4, readIP6);
+        PacketReader packetReader = new PacketReader(inputFile, Mode.OFFLINE);
 
         System.out.println(String.format("Working on... %s",fileName));
 
@@ -146,7 +146,7 @@ public class Cmd {
                 }else{
                     nDiscarded++;
                 }
-            }catch(PcapClosedException e){
+            }catch(Exception e){
                 break;
             }
             i++;
